@@ -1,0 +1,40 @@
+[{
+    "id": 2615730,
+    "name": "Ølstykke",
+    "state": "",
+    "country": "DK",
+    "coord": {
+        "lon": 12.15509,
+        "lat": 55.79567
+    }
+},
+{
+    "id": 2615749,
+    "name": "Ølgod",
+    "state": "",
+    "country": "DK",
+    "coord": {
+        "lon": 8.62859,
+        "lat": 55.80682
+    }
+},
+{
+    "id": 2615754,
+    "name": "Ølby Lyng",
+    "state": "",
+    "country": "DK",
+    "coord": {
+        "lon": 12.18416,
+        "lat": 55.49015
+    }
+},
+{
+    "id": 2615859,
+    "name": "Oksbøl",
+    "state": "",
+    "country": "DK",
+    "coord": {
+        "lon": 8.28757,
+        "lat": 55.626801
+    }
+}]
