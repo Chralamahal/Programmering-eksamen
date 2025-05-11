@@ -85,8 +85,8 @@ function setup() {
     //mit script drillede, så jeg smed bare knappen ud af canvas
     yesButton.position(-200, 200)
     noButton.hide();
-    inputName.show();  // Vis inputfeltet for navnet
-    submitNameButton.show(); // Vis knappen til at indsende navnet
+    inputName.show();
+    submitNameButton.show();
   });
   yesButton.hide();
 
@@ -139,7 +139,13 @@ function draw() {
     fill(70, 130, 180);
     rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
     fill(255);
-    text(showActualTemp ? "Next City" : "Get City Temperature", buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
+    let buttonText;
+    if (showActualTemp) {
+    buttonText = "Next City";
+    } else {
+    buttonText = "Get City Temperature";
+    }
+    text(buttonText, buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
 
     fill(0);
     textSize(14);
