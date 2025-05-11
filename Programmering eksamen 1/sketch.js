@@ -18,39 +18,29 @@ let submitButton;
 
 let showActualTemp = false;
 let actualTemp = null;
+let nameSubmittedOrDeclined = false;
 
 function preload() {
-  loadJSON('citylistSHORT.json', data => {
+  loadJSON('citylist.json', data => {
     jsonData = data;
   });
-  /*loadJSON('leaderboard.json', data => {
-    leaderboardData = data.sort((a, b) => b.score - a.score); // sort descending
-  });*/
-
-
 }
 
-
 function setup() {
-
-    //####################################################
-    database.collection('leaderboard').doc('players')
+  database.collection('leaderboard').doc('players')
     .onSnapshot( (doc) => {
     //console.log('Fik dette fra databasen: ', doc.data() )
     leaderboardData = doc.data().playerlist
-    console.log(leaderboardData)
+    
 
-    leaderboardData = leaderboardData.sort( (a, b) => (a.score > b.score) ? 1 : -1)
+    leaderboardData = leaderboardData.sort( (a, b) => (b.score > a.score) ? 1 : -1)
+    //console.log(leaderboardData)
     })
-    //####################################################
-
-
 
   createCanvas(400, 400);
   textAlign(CENTER, CENTER);
   textSize(16);
 
-  // Play button
   playButton = createButton('Play');
   playButton.position(width / 2 - 50, height / 2 - 20);
   playButton.size(100, 40);
@@ -60,7 +50,6 @@ function setup() {
     leaderboardButton.hide();
   });
 
-  // Leaderboard button
   leaderboardButton = createButton('Leaderboard');
   leaderboardButton.position(width / 2 - 50, height / 2 + 40);
   leaderboardButton.size(100, 40);
@@ -71,7 +60,6 @@ function setup() {
     backButton.show();
   });
 
-  // Back button
   backButton = createButton('Back');
   backButton.position(10, 10);
   backButton.size(60, 30);
@@ -83,50 +71,51 @@ function setup() {
   });
   backButton.hide();
 
-  // Play again button
   playAgainButton = createButton('Play Again');
-  playAgainButton.position(width / 2 - 50, height / 2 + 40);
+  playAgainButton.position(width / 2 - 50, height / 2 + 80);
   playAgainButton.size(100, 40);
   playAgainButton.mousePressed(startNewGame);
   playAgainButton.hide();
 
-  // Yes button (for leaderboard entry)
   yesButton = createButton('Yes');
-  yesButton.position(width / 2 - 50, height / 2 + 80);
+  yesButton.position(width / 2 - 50, height / 2 + 40);
   yesButton.size(100, 40);
-  yesButton.mousePressed(addToLeaderboard);
-
- 
+  yesButton.mousePressed(() => {
+    yesButton.hide();
+    //mit script drillede, så jeg smed bare knappen ud af canvas
+    yesButton.position(-200, 200)
+    noButton.hide();
+    inputName.show();  // Vis inputfeltet for navnet
+    submitNameButton.show(); // Vis knappen til at indsende navnet
+  });
   yesButton.hide();
 
-
-
-
-  // No button (for leaderboard entry)
   noButton = createButton('No');
-  noButton.position(width / 2 - 50, height / 2 + 120);
+  noButton.position(width / 2 - 50, height / 2 + 90);
   noButton.size(100, 40);
   noButton.mousePressed(() => {
-    playAgainButton.show();
     yesButton.hide();
     noButton.hide();
+    nameSubmittedOrDeclined = true;
   });
   noButton.hide();
 
-  // Name input for leaderboard
   inputName = createInput();
-  inputName.position(width / 2 - 50, height / 2 + 80);
+  inputName.position(width / 2 - 50, height / 2 + 40);
   inputName.size(100);
   inputName.hide();
 
-  // Submit name button
   submitNameButton = createButton('Submit Name');
-  submitNameButton.position(width / 2 - 50, height / 2 + 120);
+  submitNameButton.position(width / 2 - 50, height / 2 + 90);
   submitNameButton.size(100, 40);
-  submitNameButton.mousePressed(addToLeaderboard);
+  submitNameButton.mousePressed(() => {
+    addToLeaderboard();
+    inputName.hide();
+    submitNameButton.hide();
+    nameSubmittedOrDeclined = true;
+  });
   submitNameButton.hide();
 
-  // Temp input and submit button
   tempInput = createInput();
   tempInput.position(width / 2 - 50, 180);
   tempInput.size(100);
@@ -142,20 +131,16 @@ function setup() {
 function draw() {
   background(220);
 
-  if (gameState === 'start') {
+  if (gameState == 'start') {
     textSize(24);
     fill(0);
     text("Welcome to the Temperature Game", width / 2, height / 3);
-  }
-
-  else if (gameState === 'play') {
-    // Draw button
+  } else if (gameState == 'play') {
     fill(70, 130, 180);
     rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
     fill(255);
     text(showActualTemp ? "Next City" : "Get City Temperature", buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
 
-    // Score and lives
     fill(0);
     textSize(14);
     text(`Score: ${score}`, 60, 20);
@@ -165,26 +150,7 @@ function draw() {
       textSize(18);
       text(`${currentCity.city}`, width / 2, 100);
 
-      if (lives <= 0) {
-  tempInput.hide();
-  submitButton.hide();
-  textSize(20);
-  fill(200, 0, 0);
-  text("Game Over", width / 2, height / 2);
-  textSize(16);
-  text(`Final Score: ${score}`, width / 2, height / 2 + 30);
-  playAgainButton.show();
-
-  leaderboardData.sort((a, b) => b.score - a.score); // ensure it's sorted
-
-  if (leaderboardData.length < 3 || score >= leaderboardData[2].score) {
-    textSize(16);
-    text("Do you want to add yourself to the leaderboard?", width / 2, height / 2 + 60);
-    yesButton.show();
-    noButton.show();
-  }
-}
- else if (showActualTemp) {
+      if (showActualTemp) {
         textSize(16);
         fill(0);
         text(`Actual Temp: ${actualTemp} °C`, width / 2, 150);
@@ -198,27 +164,45 @@ function draw() {
       tempInput.hide();
       submitButton.hide();
     }
+  } else if (gameState == 'leaderboard') {
+    fill(0);
+    textSize(22);
+    text("Leaderboard", width / 2, 40);
+    textSize(16);
+
+    const sortedLeaderboard = [...leaderboardData].sort((a, b) => b.score - a.score);
+    for (let i = 0; i < sortedLeaderboard.length; i++) {
+      const player = sortedLeaderboard[i];
+      text(`${i + 1}. ${player.name}: ${player.score}`, width / 2, 80 + i * 30);
+    }
+  } else if (gameState == 'gameover') {
+    tempInput.hide();
+    submitButton.hide();
+
+    textSize(20);
+    fill(200, 0, 0);
+    text("Game Over", width / 2, height / 2 - 40);
+    textSize(16);
+    text(`Final Score: ${score}`, width / 2, height / 2 - 10);
+
+    leaderboardData.sort((a, b) => b.score - a.score);
+
+    if (leaderboardData.length < 10 || score > leaderboardData[leaderboardData.length - 1].score) {
+      if (!nameSubmittedOrDeclined) {
+        text("Do you want to add yourself to the leaderboard?", width / 2, height / 2 + 20);
+        yesButton.show();
+        noButton.show();
+      } else {
+        playAgainButton.show();
+      }
+    } else {
+      playAgainButton.show();
+    }
   }
-
-  else if (gameState === 'leaderboard') {
-  fill(0);
-  textSize(22);
-  text("Leaderboard", width / 2, 40);
-  textSize(16);
-
-  // Sort before displaying
-  const sortedLeaderboard = [...leaderboardData].sort((a, b) => b.score - a.score);
-
-  for (let i = 0; i < sortedLeaderboard.length; i++) {
-    const player = sortedLeaderboard[i];
-    text(`${i + 1}. ${player.name}: ${player.score}`, width / 2, 80 + i * 30);
-  }
-}
-
 }
 
 function mousePressed() {
-  if (gameState === 'play') {
+  if (gameState == 'play') {
     if (
       mouseX > buttonX && mouseX < buttonX + buttonWidth &&
       mouseY > buttonY && mouseY < buttonY + buttonHeight
@@ -252,7 +236,7 @@ function getRandomCity() {
       }
     };
 
-    cityAlreadyPicked = selectedCities.some(c => c.id === randomCity.id);
+    cityAlreadyPicked = selectedCities.some(c => c.id == randomCity.id);
   } while (cityAlreadyPicked);
 
   selectedCities.push(randomCity);
@@ -264,17 +248,11 @@ function getRandomCity() {
   fetchTemperature(lat, lon);
 }
 
-function fetchTemperature(lat, lon) {
+async function fetchTemperature(lat, lon) {
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIKey}&units=metric`;
-
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      temperature = data.main.temp;
-    })
-    .catch(err => {
-      console.error("Failed to fetch temperature:", err);
-    });
+  const response = await fetch(url);
+  const data = await response.json();
+  temperature = data.main.temp;
 }
 
 function checkGuess() {
@@ -287,6 +265,8 @@ function checkGuess() {
 
     if (lives > 0) {
       score += 1;
+    } else {
+      gameState = 'gameover';
     }
 
     tempInput.value("");
@@ -306,6 +286,8 @@ function startNewGame() {
   gameState = 'play';
   playAgainButton.hide();
   getRandomCity();
+  nameSubmittedOrDeclined = false;
+  tempInput.value(""); 
 }
 
 function addToLeaderboard() {
@@ -313,7 +295,7 @@ function addToLeaderboard() {
   leaderboardData.push({ name: playerName, score: score });
 
   leaderboardData.sort((a, b) => b.score - a.score);
-  leaderboardData = leaderboardData.slice(0, 3);
+  leaderboardData = leaderboardData.slice(0, 10);
 
   database.collection('leaderboard').doc('players').set({
     playerlist: leaderboardData
@@ -328,4 +310,8 @@ function addToLeaderboard() {
   playAgainButton.hide();
   playButton.show();
   leaderboardButton.show();
+  score = 0;
+  lives = 10;
+  tempInput.value(""); 
+  showActualTemp = false;
 }
